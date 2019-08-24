@@ -218,3 +218,68 @@ function initEvents() {
         return false;
 
     } );
+
+    // on window resize get the window´s size again
+		// reset some values..
+		$window.on( 'debouncedresize', function() {
+
+			scrollExtra = 0;
+			previewPos = -1;
+			// save item´s offset
+			saveItemInfo();
+			getWinSize();
+			var preview = $.data( this, 'preview' );
+			if( typeof preview != 'undefined' ) {
+				hidePreview();
+			}
+
+		} );
+
+	}
+
+	function getWinSize() {
+		winsize = { width : $window.width(), height : $window.height() };
+	}
+
+	function showPreview( $item ) {
+
+		var preview = $.data( this, 'preview' ),
+			// item´s offset top
+			position = $item.data( 'offsetTop' );
+
+		scrollExtra = 0;
+
+		// if a preview exists and previewPos is different (different row) from item´s top then close it
+		if( typeof preview != 'undefined' ) {
+
+			// not in the same row
+			if( previewPos !== position ) {
+				// if position > previewPos then we need to take te current preview´s height in consideration when scrolling the window
+				if( position > previewPos ) {
+					scrollExtra = preview.height;
+				}
+				hidePreview();
+			}
+			// same row
+			else {
+				preview.update( $item );
+				return false;
+			}
+
+		}
+
+		// update previewPos
+		previewPos = position;
+		// initialize new preview for the clicked item
+		preview = $.data( this, 'preview', new Preview( $item ) );
+		// expand preview overlay
+		preview.open();
+
+	}
+
+	function hidePreview() {
+		current = -1;
+		var preview = $.data( this, 'preview' );
+		preview.close();
+		$.removeData( this, 'preview' );
+	}
