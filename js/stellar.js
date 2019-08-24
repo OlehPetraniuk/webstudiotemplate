@@ -1,5 +1,15 @@
+/*!
+ * Stellar.js v0.6.2
+ * http://markdalgleish.com/projects/stellar.js
+ * 
+ * Copyright 2013, Mark Dalgleish
+ * This content is released under the MIT license
+ * http://markdalgleish.mit-license.org
+ */
+
 ;(function($, window, document, undefined) {
-    var pluginName = 'stellar',
+
+	var pluginName = 'stellar',
 		defaults = {
 			scrollProperty: 'scroll',
 			positionProperty: 'position',
@@ -114,9 +124,9 @@
 			function(callback) {
 				setTimeout(callback, 1000 / 60);
 			}
-        );
-        
-        function Plugin(element, options) {
+		);
+
+	function Plugin(element, options) {
 		this.element = element;
 		this.options = $.extend({}, defaults, options);
 
@@ -322,9 +332,9 @@
 						tempParentOffsetLeft += $this.position().left;
 						tempParentOffsetTop += $this.position().top;
 					}
-                });
-                
-                // Detect the offsets
+				});
+
+				// Detect the offsets
 				horizontalOffset = ($this.data('stellar-horizontal-offset') !== undefined ? $this.data('stellar-horizontal-offset') : ($offsetParent !== undefined && $offsetParent.data('stellar-horizontal-offset') !== undefined ? $offsetParent.data('stellar-horizontal-offset') : self.horizontalOffset));
 				verticalOffset = ($this.data('stellar-vertical-offset') !== undefined ? $this.data('stellar-vertical-offset') : ($offsetParent !== undefined && $offsetParent.data('stellar-vertical-offset') !== undefined ? $offsetParent.data('stellar-vertical-offset') : self.verticalOffset));
 
@@ -529,5 +539,122 @@
 				this.currentWidth = this.viewportWidth;
 				this.currentHeight = this.viewportHeight;
 			}
-    
-});
+
+			// Reposition elements
+			for (i = this.particles.length - 1; i >= 0; i--) {
+				particle = this.particles[i];
+
+				fixedRatioOffset = (particle.isFixed ? 1 : 0);
+
+				// Calculate position, then calculate what the particle's new offset will be (for visibility check)
+				if (this.options.horizontalScrolling) {
+					newPositionLeft = (scrollLeft + particle.horizontalOffset + this.viewportOffsetLeft + particle.startingPositionLeft - particle.startingOffsetLeft + particle.parentOffsetLeft) * -(particle.stellarRatio + fixedRatioOffset - 1) + particle.startingPositionLeft;
+					newOffsetLeft = newPositionLeft - particle.startingPositionLeft + particle.startingOffsetLeft;
+				} else {
+					newPositionLeft = particle.startingPositionLeft;
+					newOffsetLeft = particle.startingOffsetLeft;
+				}
+
+				if (this.options.verticalScrolling) {
+					newPositionTop = (scrollTop + particle.verticalOffset + this.viewportOffsetTop + particle.startingPositionTop - particle.startingOffsetTop + particle.parentOffsetTop) * -(particle.stellarRatio + fixedRatioOffset - 1) + particle.startingPositionTop;
+					newOffsetTop = newPositionTop - particle.startingPositionTop + particle.startingOffsetTop;
+				} else {
+					newPositionTop = particle.startingPositionTop;
+					newOffsetTop = particle.startingOffsetTop;
+				}
+
+				// Check visibility
+				if (this.options.hideDistantElements) {
+					isVisibleHorizontal = !this.options.horizontalScrolling || newOffsetLeft + particle.width > (particle.isFixed ? 0 : scrollLeft) && newOffsetLeft < (particle.isFixed ? 0 : scrollLeft) + this.viewportWidth + this.viewportOffsetLeft;
+					isVisibleVertical = !this.options.verticalScrolling || newOffsetTop + particle.height > (particle.isFixed ? 0 : scrollTop) && newOffsetTop < (particle.isFixed ? 0 : scrollTop) + this.viewportHeight + this.viewportOffsetTop;
+				}
+
+				if (isVisibleHorizontal && isVisibleVertical) {
+					if (particle.isHidden) {
+						this.options.showElement(particle.$element);
+						particle.isHidden = false;
+					}
+
+					this._setPosition(particle.$element, newPositionLeft, particle.startingPositionLeft, newPositionTop, particle.startingPositionTop);
+				} else {
+					if (!particle.isHidden) {
+						this.options.hideElement(particle.$element);
+						particle.isHidden = true;
+					}
+				}
+			}
+
+			// Reposition backgrounds
+			for (i = this.backgrounds.length - 1; i >= 0; i--) {
+				background = this.backgrounds[i];
+
+				fixedRatioOffset = (background.isFixed ? 0 : 1);
+				bgLeft = (this.options.horizontalScrolling ? (scrollLeft + background.horizontalOffset - this.viewportOffsetLeft - background.startingOffsetLeft + background.parentOffsetLeft - background.startingBackgroundPositionLeft) * (fixedRatioOffset - background.stellarRatio) + 'px' : background.startingValueLeft);
+				bgTop = (this.options.verticalScrolling ? (scrollTop + background.verticalOffset - this.viewportOffsetTop - background.startingOffsetTop + background.parentOffsetTop - background.startingBackgroundPositionTop) * (fixedRatioOffset - background.stellarRatio) + 'px' : background.startingValueTop);
+
+				setBackgroundPosition(background.$element, bgLeft, bgTop);
+			}
+		},
+		_handleScrollEvent: function() {
+			var self = this,
+				ticking = false;
+
+			var update = function() {
+				self._repositionElements();
+				ticking = false;
+			};
+
+			var requestTick = function() {
+				if (!ticking) {
+					requestAnimFrame(update);
+					ticking = true;
+				}
+			};
+			
+			this.$scrollElement.bind('scroll.' + this.name, requestTick);
+			requestTick();
+		},
+		_startAnimationLoop: function() {
+			var self = this;
+
+			this._animationLoop = function() {
+				requestAnimFrame(self._animationLoop);
+				self._repositionElements();
+			};
+			this._animationLoop();
+		}
+	};
+
+	$.fn[pluginName] = function (options) {
+		var args = arguments;
+		if (options === undefined || typeof options === 'object') {
+			return this.each(function () {
+				if (!$.data(this, 'plugin_' + pluginName)) {
+					$.data(this, 'plugin_' + pluginName, new Plugin(this, options));
+				}
+			});
+		} else if (typeof options === 'string' && options[0] !== '_' && options !== 'init') {
+			return this.each(function () {
+				var instance = $.data(this, 'plugin_' + pluginName);
+				if (instance instanceof Plugin && typeof instance[options] === 'function') {
+					instance[options].apply(instance, Array.prototype.slice.call(args, 1));
+				}
+				if (options === 'destroy') {
+					$.data(this, 'plugin_' + pluginName, null);
+				}
+			});
+		}
+	};
+
+	$[pluginName] = function(options) {
+		var $window = $(window);
+		return $window.stellar.apply($window, Array.prototype.slice.call(arguments, 0));
+	};
+
+	// Expose the scroll and position property function hashes so they can be extended
+	$[pluginName].scrollProperty = scrollProperty;
+	$[pluginName].positionProperty = positionProperty;
+
+	// Expose the plugin class so it can be modified
+	window.Stellar = Plugin;
+}(jQuery, this, document));
