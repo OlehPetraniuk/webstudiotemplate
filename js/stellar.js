@@ -322,6 +322,212 @@
 						tempParentOffsetLeft += $this.position().left;
 						tempParentOffsetTop += $this.position().top;
 					}
+                });
+                
+                // Detect the offsets
+				horizontalOffset = ($this.data('stellar-horizontal-offset') !== undefined ? $this.data('stellar-horizontal-offset') : ($offsetParent !== undefined && $offsetParent.data('stellar-horizontal-offset') !== undefined ? $offsetParent.data('stellar-horizontal-offset') : self.horizontalOffset));
+				verticalOffset = ($this.data('stellar-vertical-offset') !== undefined ? $this.data('stellar-vertical-offset') : ($offsetParent !== undefined && $offsetParent.data('stellar-vertical-offset') !== undefined ? $offsetParent.data('stellar-vertical-offset') : self.verticalOffset));
+
+				// Add our object to the particles collection
+				self.particles.push({
+					$element: $this,
+					$offsetParent: $offsetParent,
+					isFixed: $this.css('position') === 'fixed',
+					horizontalOffset: horizontalOffset,
+					verticalOffset: verticalOffset,
+					startingPositionLeft: positionLeft,
+					startingPositionTop: positionTop,
+					startingOffsetLeft: offsetLeft,
+					startingOffsetTop: offsetTop,
+					parentOffsetLeft: parentOffsetLeft,
+					parentOffsetTop: parentOffsetTop,
+					stellarRatio: ($this.data('stellar-ratio') !== undefined ? $this.data('stellar-ratio') : 1),
+					width: $this.outerWidth(true),
+					height: $this.outerHeight(true),
+					isHidden: false
 				});
+			});
+		},
+		_findBackgrounds: function() {
+			var self = this,
+				scrollLeft = this._getScrollLeft(),
+				scrollTop = this._getScrollTop(),
+				$backgroundElements;
+
+			this.backgrounds = [];
+
+			if (!this.options.parallaxBackgrounds) return;
+
+			$backgroundElements = this.$element.find('[data-stellar-background-ratio]');
+
+			if (this.$element.data('stellar-background-ratio')) {
+                $backgroundElements = $backgroundElements.add(this.$element);
+			}
+
+			$backgroundElements.each(function() {
+				var $this = $(this),
+					backgroundPosition = getBackgroundPosition($this),
+					horizontalOffset,
+					verticalOffset,
+					positionLeft,
+					positionTop,
+					marginLeft,
+					marginTop,
+					offsetLeft,
+					offsetTop,
+					$offsetParent,
+					parentOffsetLeft = 0,
+					parentOffsetTop = 0,
+					tempParentOffsetLeft = 0,
+					tempParentOffsetTop = 0;
+
+				// Ensure this element isn't already part of another scrolling element
+				if (!$this.data('stellar-backgroundIsActive')) {
+					$this.data('stellar-backgroundIsActive', this);
+				} else if ($this.data('stellar-backgroundIsActive') !== this) {
+					return;
+				}
+
+				// Save/restore the original top and left CSS values in case we destroy the instance
+				if (!$this.data('stellar-backgroundStartingLeft')) {
+					$this.data('stellar-backgroundStartingLeft', backgroundPosition[0]);
+					$this.data('stellar-backgroundStartingTop', backgroundPosition[1]);
+				} else {
+					setBackgroundPosition($this, $this.data('stellar-backgroundStartingLeft'), $this.data('stellar-backgroundStartingTop'));
+				}
+
+				// Catch-all for margin top/left properties (these evaluate to 'auto' in IE7 and IE8)
+				marginLeft = ($this.css('margin-left') === 'auto') ? 0 : parseInt($this.css('margin-left'), 10);
+				marginTop = ($this.css('margin-top') === 'auto') ? 0 : parseInt($this.css('margin-top'), 10);
+
+				offsetLeft = $this.offset().left - marginLeft - scrollLeft;
+				offsetTop = $this.offset().top - marginTop - scrollTop;
+				
+				// Calculate the offset parent
+				$this.parents().each(function() {
+					var $this = $(this);
+
+					if ($this.data('stellar-offset-parent') === true) {
+						parentOffsetLeft = tempParentOffsetLeft;
+						parentOffsetTop = tempParentOffsetTop;
+						$offsetParent = $this;
+
+						return false;
+					} else {
+						tempParentOffsetLeft += $this.position().left;
+						tempParentOffsetTop += $this.position().top;
+					}
+				});
+
+				// Detect the offsets
+				horizontalOffset = ($this.data('stellar-horizontal-offset') !== undefined ? $this.data('stellar-horizontal-offset') : ($offsetParent !== undefined && $offsetParent.data('stellar-horizontal-offset') !== undefined ? $offsetParent.data('stellar-horizontal-offset') : self.horizontalOffset));
+				verticalOffset = ($this.data('stellar-vertical-offset') !== undefined ? $this.data('stellar-vertical-offset') : ($offsetParent !== undefined && $offsetParent.data('stellar-vertical-offset') !== undefined ? $offsetParent.data('stellar-vertical-offset') : self.verticalOffset));
+
+				self.backgrounds.push({
+					$element: $this,
+					$offsetParent: $offsetParent,
+					isFixed: $this.css('background-attachment') === 'fixed',
+					horizontalOffset: horizontalOffset,
+					verticalOffset: verticalOffset,
+					startingValueLeft: backgroundPosition[0],
+					startingValueTop: backgroundPosition[1],
+					startingBackgroundPositionLeft: (isNaN(parseInt(backgroundPosition[0], 10)) ? 0 : parseInt(backgroundPosition[0], 10)),
+					startingBackgroundPositionTop: (isNaN(parseInt(backgroundPosition[1], 10)) ? 0 : parseInt(backgroundPosition[1], 10)),
+					startingPositionLeft: $this.position().left,
+					startingPositionTop: $this.position().top,
+					startingOffsetLeft: offsetLeft,
+					startingOffsetTop: offsetTop,
+					parentOffsetLeft: parentOffsetLeft,
+					parentOffsetTop: parentOffsetTop,
+					stellarRatio: ($this.data('stellar-background-ratio') === undefined ? 1 : $this.data('stellar-background-ratio'))
+				});
+			});
+		},
+		_reset: function() {
+			var particle,
+				startingPositionLeft,
+				startingPositionTop,
+				background,
+				i;
+
+			for (i = this.particles.length - 1; i >= 0; i--) {
+				particle = this.particles[i];
+				startingPositionLeft = particle.$element.data('stellar-startingLeft');
+				startingPositionTop = particle.$element.data('stellar-startingTop');
+
+				this._setPosition(particle.$element, startingPositionLeft, startingPositionLeft, startingPositionTop, startingPositionTop);
+
+				this.options.showElement(particle.$element);
+
+				particle.$element.data('stellar-startingLeft', null).data('stellar-elementIsActive', null).data('stellar-backgroundIsActive', null);
+			}
+
+			for (i = this.backgrounds.length - 1; i >= 0; i--) {
+				background = this.backgrounds[i];
+
+				background.$element.data('stellar-backgroundStartingLeft', null).data('stellar-backgroundStartingTop', null);
+
+				setBackgroundPosition(background.$element, background.startingValueLeft, background.startingValueTop);
+			}
+		},
+		destroy: function() {
+			this._reset();
+
+			this.$scrollElement.unbind('resize.' + this.name).unbind('scroll.' + this.name);
+			this._animationLoop = $.noop;
+
+			$(window).unbind('load.' + this.name).unbind('resize.' + this.name);
+		},
+		_setOffsets: function() {
+			var self = this,
+				$window = $(window);
+
+			$window.unbind('resize.horizontal-' + this.name).unbind('resize.vertical-' + this.name);
+
+			if (typeof this.options.horizontalOffset === 'function') {
+				this.horizontalOffset = this.options.horizontalOffset();
+				$window.bind('resize.horizontal-' + this.name, function() {
+					self.horizontalOffset = self.options.horizontalOffset();
+				});
+			} else {
+				this.horizontalOffset = this.options.horizontalOffset;
+			}
+
+			if (typeof this.options.verticalOffset === 'function') {
+				this.verticalOffset = this.options.verticalOffset();
+				$window.bind('resize.vertical-' + this.name, function() {
+					self.verticalOffset = self.options.verticalOffset();
+				});
+			} else {
+				this.verticalOffset = this.options.verticalOffset;
+			}
+		},
+		_repositionElements: function() {
+			var scrollLeft = this._getScrollLeft(),
+				scrollTop = this._getScrollTop(),
+				horizontalOffset,
+				verticalOffset,
+				particle,
+				fixedRatioOffset,
+				background,
+				bgLeft,
+				bgTop,
+				isVisibleVertical = true,
+				isVisibleHorizontal = true,
+				newPositionLeft,
+				newPositionTop,
+				newOffsetLeft,
+				newOffsetTop,
+				i;
+
+			// First check that the scroll position or container size has changed
+			if (this.currentScrollLeft === scrollLeft && this.currentScrollTop === scrollTop && this.currentWidth === this.viewportWidth && this.currentHeight === this.viewportHeight) {
+				return;
+			} else {
+				this.currentScrollLeft = scrollLeft;
+				this.currentScrollTop = scrollTop;
+				this.currentWidth = this.viewportWidth;
+				this.currentHeight = this.viewportHeight;
+			}
     
 });
