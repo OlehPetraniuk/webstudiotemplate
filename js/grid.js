@@ -190,3 +190,31 @@ function init( config ) {
     } );
 
 }
+
+// saves the item´s offset top and height (if saveheight is true)
+function saveItemInfo( saveheight ) {
+    $items.each( function() {
+        var $item = $( this );
+        $item.data( 'offsetTop', $item.offset().top );
+        if( saveheight ) {
+            $item.data( 'height', $item.height() );
+        }
+    } );
+}
+
+function initEvents() {
+
+    // when clicking an item, show the preview with the item´s info and large image.
+    // close the item if already expanded.
+    // also close if clicking on the item´s cross
+    $items.on( 'click', 'span.og-close', function() {
+        hidePreview();
+        return false;
+    } ).children( 'a' ).on( 'click', function(e) {
+
+        var $item = $( this ).parent();
+        // check if item already opened
+        current === $item.index() ? hidePreview() : showPreview( $item );
+        return false;
+
+    } );
