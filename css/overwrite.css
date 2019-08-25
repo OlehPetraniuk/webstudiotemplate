@@ -122,8 +122,6 @@ input[type="color"]:focus,
 .uneditable-input:focus {
   outline: 0;
   outline: thin dotted \9;
-  /* IE6-9 */
-
 }
 
 input.search-query {
