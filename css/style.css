@@ -1,3 +1,16 @@
+/*
+  Theme Name: Alstar
+  Theme URL: https://bootstrapmade.com/alstar-free-parallax-bootstrap-template/
+  Author: BootstrapMade.com
+  Author URL: https://bootstrapmade.com
+*/
+
+/* ================================
+Imports
+================================= */
+@import url('font-awesome.min.css');
+@import url('simpletextrotator.css');
+@import url('overwrite.css');
 @import url('animate.css');
 
 /* ================================
@@ -75,6 +88,7 @@ button.navbar-toggle {
 	border-color: #999;
 	color: #999;
 }
+
 
 /* ================================
 margin, padding
@@ -217,6 +231,7 @@ Home sections
 .bg-dark {
 	background: #575757;
 }
+
 
 /* --- section content general color --- */
 
@@ -509,6 +524,7 @@ Services
 	cursor: pointer;
 }
 
+
 /* ================================
 Works
 ================================= */
@@ -740,6 +756,7 @@ ul.clients {
 ul.clients li {
 	display: inline;
 }
+
 
 /* ================================
 Bottom widget
