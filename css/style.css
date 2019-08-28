@@ -740,3 +740,29 @@ ul.clients {
 ul.clients li {
 	display: inline;
 }
+
+/* ================================
+Bottom widget
+================================= */
+#bottom-widget {
+  overflow: hidden;
+}
+ul.social-network {
+	margin: 0;
+	margin-left:0;
+	padding-left: 0;
+	list-style: none;
+}
+ul.social-network li {
+	display: inline;
+	margin: 5px 5px;
+}
+
+
+ul.social-network li a:hover span .fa-circle {
+	color: #2b2b2b;
+}
+
+ul.social-network li a i{
+  transition: 0.3s
+}
