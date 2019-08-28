@@ -766,3 +766,20 @@ ul.social-network li a:hover span .fa-circle {
 ul.social-network li a i{
   transition: 0.3s
 }
+/* ================================
+Footer
+================================= */
+footer {
+	background: #00c1c1;
+	color: #fff;
+	padding: 50px 0 30px;
+}
+
+footer a {
+	color: #fff;
+}
+
+footer a:hover {
+	color: #fff;
+	text-decoration: underline;
+}
