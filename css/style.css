@@ -783,3 +783,81 @@ footer a:hover {
 	color: #fff;
 	text-decoration: underline;
 }
+
+/* ================================
+more media queries
+================================= */
+
+@media (max-width:768px) {
+
+	header{
+		padding-bottom: 50px;
+		min-height: 1000px;
+		height: 100%;
+	}
+
+	.navbar-nav {
+		float: left;
+		text-align: left;
+	}
+
+	.box-team, .box-team img {
+		text-align: center;
+	}
+	.box-team img {
+		float: none;
+		margin:0 auto;
+	}
+	.box-team {
+		margin-bottom: 30px;
+	}
+
+	.og-fullimg { display: none; }
+	.og-details { float: none; width: 100%; padding: 0 40px; }
+
+}
+
+@media (max-width:992px) {
+
+	.service.carousel .item h4, .service.carousel .item p{
+		text-align: center;
+	}
+
+	.service p{
+			margin-bottom: 60px;
+	}
+	.og-expander {
+		background: transparent;
+
+	}
+	.og-details {
+		padding: 0 20px;
+	}
+
+}
+
+@media (max-width:480px){
+
+	header .carousel-iphone, .detail .screenshot{
+		width: 280px;
+	}
+
+	header .carousel, .detail .screenshot img{
+		padding-top: 85px;
+		width: 245px;
+	}
+
+	.service .screenshot img{
+		margin-top: -12px;
+		padding-top: 0px;
+	}
+
+	header{
+		padding-top: 30px;
+		padding-bottom: 0px;
+	}
+
+	header h1{
+		font-size: 70px;
+	}
+}
